@@ -1,0 +1,228 @@
+import json
+import nltk
+import pandas as pd
+import random
+
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+from nltk.stem import WordNetLemmatizer
+nltk.download('wordnet')
+from nltk.stem import PorterStemmer
+from google.colab import drive
+drive.mount('/content/gdrive', force_remount=True)
+def filter_stop_words(words):
+    stop_words = set(stopwords.words('english'))
+    filtered_words = [word for word in words if word.lower() not in stop_words]
+    return filtered_words
+def lemmatize_words(words):
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_words = [lemmatizer.lemmatize(word) for word in words]
+    return lemmatized_words
+path='/content/gdrive/MyDrive/Sarcasm_Headlines_Dataset.json'
+raw_data_json = pd.read_json(path, lines=True)
+
+print("Raw data is :\n\n", raw_data_json.loc[:20,['is_sarcastic','headline']])
+Raw data is :
+
+     is_sarcastic                                           headline
+0              1  thirtysomething scientists unveil doomsday clo...
+1              0  dem rep. totally nails why congress is falling...
+2              0  eat your veggies: 9 deliciously different recipes
+3              1  inclement weather prevents liar from getting t...
+4              1  mother comes pretty close to using word 'strea...
+5              0                               my white inheritance
+6              0         5 ways to file your taxes with less stress
+7              1  richard branson's global-warming donation near...
+8              1  shadow government getting too large to meet in...
+9              0                 lots of parents know this scenario
+10             0  this lesbian is considered a father in indiana...
+11             0  amanda peet told her daughter sex is 'a specia...
+12             0  what to know regarding current treatments for ...
+13             0  chris christie suggests hillary clinton was to...
+14             1  ford develops new suv that runs purely on gaso...
+15             0  uber ceo travis kalanick stepping down from tr...
+16             1  area boy enters jumping-and-touching-tops-of-d...
+17             1      area man does most of his traveling by gurney
+18             0           leave no person with disabilities behind
+19             0  lin-manuel miranda would like to remind you to...
+20             0  60 journalists killed in 2014 as targeting of ...
+[ ]
+X = []
+Y = []
+special_characters = "!@#$%^&*()-_+=[]{}|:;\"'<>,.?/"
+
+for index, elem in raw_data_json.iterrows():
+  text = elem['headline']
+  outcome = elem['is_sarcastic']
+
+  x=[]
+  str1 = ""
+  for char in (text + ' '):
+    if char == ' ' or char == '-' or char == '_':
+      x.append(str1)
+      str1 = ""
+    elif char not in special_characters:
+      str1 = str1 + char
+
+  if len(x) > 0:
+    filtered_x = filter_stop_words(x)
+  else:
+    continue
+  if len(filtered_x) > 0:
+    lemmatized_x = lemmatize_words(filtered_x)
+    X.append(lemmatized_x)
+    Y.append(outcome)
+
+[ ]
+assert (len(X) == len(Y))
+
+sarcastic_data = []
+non_sarcastic_data = []
+
+n_X = len(X)
+
+for i in range(n_X):
+  if Y[i] == 1:
+    sarcastic_data.append(X[i])
+  else:
+    non_sarcastic_data.append(X[i])
+
+print("Number of sarcastic samples : " + str(len(sarcastic_data)) + "\nNumber of non sarcastic samples : " + str(len(non_sarcastic_data)))
+
+
+seed_value = 42
+split_at = 9544 # decides number of sarcastic and non-sarcastic data in train set
+n_sarcastic = len(sarcastic_data)
+n_non_sarcastic = len(non_sarcastic_data)
+random.seed(seed_value)
+
+
+
+train_data = sarcastic_data[:split_at] + non_sarcastic_data[:split_at]
+train_labels = ([1] * split_at) + ([0] * split_at)
+test_data = (sarcastic_data[split_at:] + non_sarcastic_data[split_at:])
+test_labels = ([1] * (n_sarcastic - split_at)) + ([0] * (n_non_sarcastic -split_at))
+
+n_train = len(train_data)
+n_test = len(test_data)
+
+assert (len(train_data) == len(train_labels))
+assert (len(test_data) == len(test_labels))
+
+combined_train_data = list(zip(train_data, train_labels))
+combined_test_data = list(zip(test_data, test_labels))
+random.shuffle(combined_train_data)
+random.shuffle(combined_test_data)
+
+X_train, Y_train = zip(*combined_train_data) # Training set
+X_test, Y_test = zip(*combined_test_data) # Test set
+
+print("Length of training set is : ", n_train)
+print("Length of test set is : ", n_test)
+
+for i in range(100):
+  print(X_train[i], Y_train[i])
+Number of sarcastic samples : 13634
+Number of non sarcastic samples : 14984
+Length of training set is :  19088
+Length of test set is :  9530
+['christmas', 'pageant', 'enters', 'pre', 'production'] 1
+['unidentified', 'yowling', 'animal', 'carrier', 'apparently', 'named', 'kiwi'] 1
+['study', 'every', '10', 'second', 'skyscraper', 'window', 'washer', 'fall', 'death'] 1
+['paranoid', 'oscar', 'pistorius', 'still', 'think', 'burglar'] 1
+['new', 'war', 'enables', 'mankind', 'resolve', 'disagreement'] 1
+['strange', 'looking', 'pup', 'find', 'perfect', 'family'] 0
+['mlb', 'player', 'yordano', 'ventura', 'andy', 'marte', 'die', 'separate', 'car', 'crash'] 0
+['science', 'behind', 'celebrity', 'like', 'ryan', 'lochte', 'tell', 'fib'] 0
+['voice', 'recognition', 'software', 'yelled'] 1
+['flooding', 'texas', 'lead', 'mosquito', 'borne', 'illness'] 0
+['ebola', 'sierra', 'leone', 'reminded', 'conflict', 'zone'] 0
+['podiatrist', 'recommend', 'getting', 'foot', 'rotated', 'every', '6', 'month'] 1
+['new', 'gun', 'law', 'would', 'require', 'james', 'holmes', 'undergo', 'strict', 'background', 'check', 'purchasing', 'firearm'] 1
+['trump', 'asks', 'entire', 'senate', 'clear', 'chamber', 'speak', 'comey', 'alone'] 1
+['first', 'baby', '2010', 'finally', 'born'] 1
+['activist', 'rally', 'domestic', 'violence', 'survivor', 'found', 'guilty', 'child', 'abduction'] 0
+['ira', 'hamas', 'sweep', '1990', 'bombie', 'award'] 1
+['hillary', 'clinton', 'making', 'big', 'promise', 'ufo', 'believer'] 0
+['disaster', 'strike', 'mother', 'newborn', 'vulnerable'] 0
+['new', 'wondersplint', 'make', 'fracture', 'appear', 'larger', 'fuller'] 1
+['grieving', 'couple', 'find', 'different', 'way', 'use', 'stroller'] 1
+['man', 'unable', 'explain', 'contempt', 'feel', 'group', 'people', 'enjoying', 'one', 'anothers', 'company'] 1
+['gun', 'ultimate', 'public', 'health', 'crisis', 'howard', 'dean', 'tell', 'democratic', 'convention'] 0
+['project', '24', 'portrait', 'millennial', 'artist', 'andrew', 'kaminski'] 0
+['zales', 'introduces', 'new', 'line', 'casual', 'dating', 'diamond', 'ring'] 1
+['trump', 'new', 'medicaid', 'rule', 'arent', 'empowering', 'people', 'theyre', 'punishing', 'poor'] 0
+['8', 'reason', 'woman', 'midlife', 'need', 'besties'] 0
+['pro', 'israel', 'mean'] 0
+['largest', 'demographic', 'binge', 'drinker', 'might', 'surprise'] 0
+['dole', 'make', 'pretend', 'white', 'house', 'card', 'table', 'sheet'] 1
+['colorful', 'multicultural', 'mural', 'celebrates', 'diverse', 'lack', 'talent'] 1
+['historian', 'still', 'unable', 'determine', 'american', 'able', 'build', 'hoover', 'dam'] 1
+['newspaper', 'formally', 'apologizes', 'wookiees', '40', 'year', 'old', 'star', 'war', 'mistake'] 0
+['2', 'year', 'old', 'lifetime', 'worth', 'perfect', 'halloween', 'costume'] 0
+['backstreet', 'boy', 'become', 'backstreet', 'men', 'backstreet', 'ritual'] 1
+['unexpected', 'heirloom'] 0
+['anonymous', 'source', 'informs', 'bob', 'woodward', 'hasnt', 'relevant', '40', 'year'] 1
+['strangely', 'compelling', 'shybot', 'roams', 'california', 'desert', 'avoiding', 'human'] 0
+['black', 'ribbon', 'balsam'] 0
+['oyster', 'discernible', 'effect', 'date'] 1
+['applebees', 'offer', 'divorced', 'father', 'child', 'special', 'every', 'weekend'] 1
+['egypt', 'set', 'date', 'parliamentary', 'election'] 0
+['confusing', 'roadside', 'memorial', 'feature', 'bicycle', 'rotary', 'telephone', 'jug', 'kind'] 1
+['new', 'dating', 'website', 'help', 'plus', 'size', 'jewish', 'plane', 'crash', 'survivor', 'find', 'love'] 1
+['private', 'prison', 'problem'] 0
+['hawaii', 'millennials', 'day'] 0
+['new', 'chapter', 'u', 'cuba', 'relation'] 0
+['house', 'bipartisanship', 'throw', 'pitifully', 'weak', 'toxic', 'chemical', 'control', 'bill'] 0
+['playground', 'treated', 'hot', 'pug', 'pug', 'action'] 1
+['lazy', 'poor', 'person', 'never', 'earned', 'passive', 'income', 'stock', 'dividend', 'day', 'life'] 1
+['mattis', 'tillerson', 'want', 'blank', 'check', 'wage', 'illegal', 'war'] 0
+['processing', 'fact', 'fergusons', 'legacy'] 0
+['right', 'live', 'life', 'complete', 'stunned', 'horror', 'added', 'constitution'] 1
+['obamas', 'declaration', 'swine', 'flu', 'emergency', 'prompt', 'pro', 'swine', 'flu', 'republican', 'response'] 1
+['glenn', 'close', 'angry', 'darkly', 'sad', 'harvey', 'weinstein', 'allegation'] 0
+['meet', 'eye', 'tony', 'award', 'frontrunner', 'christopher', 'jackson', 'hamilton'] 0
+['eye', 'removed', 'violent', 'yearbook', 'attack'] 1
+['kfc', 'release', 'new', 'family', 'size', 'nugget'] 1
+['democratic', 'congressman', 'protest', 'trump', 'environmental', 'policy', 'bringing', 'endangered', 'red', 'wolf', 'state', 'union', 'guest'] 1
+['25', 'year', 'old', 'man', 'longer', 'impressed', 'mewtwo'] 1
+['study', 'beginning', 'email', 'short', 'disingenuous', 'inquiry', 'personal', 'life', 'best', 'way', 'network'] 1
+['dr', 'oz', 'explains', 'men', 'rarely', 'address', 'mental', 'health', 'issue'] 0
+['north', 'korea', 'claim', 'new', 'long', 'range', 'missile', 'ability', 'fly', 'right', 'air', 'unlike', 'bird', 'fly'] 1
+['new', 'mit', 'study', 'suggests', 'sonic', 'hedgehog', 'might', 'living', 'computer', 'simulation'] 1
+['supreme', 'court', 'understudy', 'fill', 'scalia'] 1
+['flash', 'animated', 'osama', 'bin', 'laden', 'captured'] 1
+['biden', 'request', 'named', 'special', 'envoy', 'reno'] 1
+['maya', 'angelou', 'thought', 'shed', 'invited', 'white', 'house', 'stuff'] 1
+['anti', 'homosexuality', 'sermon', 'suspiciously', 'well', 'informed'] 1
+['state', 'help', '5', 'million', 'kid', 'parent', 'behind', 'bar'] 0
+['shooting', 'non', 'target'] 0
+['le', 'misérables', 'take', 'home', 'oscar', 'sound'] 1
+['executive', 'legislative', 'judicial', 'branch', 'merge'] 1
+['plea', 'free', 'archbishop', 'mar', 'gregorios', 'yohanna', 'ibrahim', 'archbishop', 'boulos', 'yazigi', 'kidnapped', 'one', 'year', 'ago', 'today'] 0
+['texas', 'execute', 'man', 'murdering', 'boy', 'drinking', 'blood'] 0
+['art', 'expert', 'confirm', 'guggenheim', 'museum', 'forgery'] 1
+['pregnant', 'woman', 'glow', 'rage'] 1
+['dad', 'strap', 'baby', 'steering', 'wheel', 'spin', 'around'] 0
+['u', 'driving', 'le', 'still', 'building', 'highway'] 0
+['independent', 'baking', 'scene', 'apparently', 'worth', 'documentary'] 1
+['george', 'rr', 'martin', 'promise', 'fan', 'wind', 'winter', 'nearly', 'started'] 1
+['historical', 'archive', 'twenty', 'top', 'book', 'print', 'present'] 1
+['20', 'people', 'found', 'refuge', 'famous', 'paris', 'bookstore', 'attack'] 0
+['area', 'dad', 'didnt', 'shell', '100', 'aquarium', 'lecture', 'ecosystem'] 1
+['area', 'man', 'proud', 'blood', 'type'] 1
+['member', 'opening', 'band', 'walking', 'among', 'crowd', 'intermission', 'like', 'god', 'among', 'men'] 1
+['natural', 'light', 'important', 'local', 'man'] 1
+['pelosi', 'throw', 'cold', 'water', 'tax', 'extenders', 'bill', 'talk', 'run', 'wire'] 0
+['15', 'photo', 'hot', 'dude', 'supporting', 'bernie', 'sander', 'make', 'feelthebern'] 0
+['woman', 'pay', 'full', 'price', 'carpet', 'one', 'day', 'non', 'sale'] 1
+['talkative', 'motherfucker', 'extroverted', 'friend', 'got', 'train'] 1
+['area', 'man', 'somehow', 'endures', 'harrowing', 'entertainment', 'free', 'commute'] 1
+['riverboat', 'horseracing', 'fails', 'utterly'] 1
+['new', 'york', 'time', 'editorial', 'board', 'endorses', 'john', 'kasich', 'gop', 'nomination'] 0
+['learning', 'right', 'give', 'might'] 0
+['jk', 'rowling', 'tweet', 'hilarious', 'response', 'confusing', 'olympic', 'sport'] 0
+['3', 'thing', 'know', 'learning', 'disability'] 0
+['proof', 'shouldnt', 'blame', 'teacher', 'achievement', 'gap'] 0
+['man', 'excited', 'look', 'like', 'different', 'type', 'idiot', 'front', 'coworkers', 'bar'] 1
+['humane', 'society', 'urge', 'american', 'opt', 'shelter', 'turkey', 'thanksgiving'] 1
