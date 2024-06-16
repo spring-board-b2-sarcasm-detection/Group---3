@@ -2,6 +2,8 @@
 
 **Detecting Sarcasm in News Headlines and Articles using Deep Learning**
 
+Sarcasm Detection Raw Data Link : https://raw.githubusercontent.com/spring-board-b2-sarcasm-detection/Group-3/Nibedita06/Sarcasm_Headlines_Dataset.json
+
 Detecting sarcasm in news headlines and articles is crucial for several reasons. Sarcasm occurs
 when someone says something but means the opposite, often with a humorous or critical tone.
 This can easily confuse readers, especially when vocal cues and body language are absent in
