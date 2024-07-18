@@ -1,7 +1,7 @@
 # Group---3
 Detecting Sarcasm in News Headlined and Articles using Deep Learning
 
-# Sarcasm Detection in News Headlines
+## Sarcasm Detection in News Headlines
 
 This project uses a CNN-LSTM model to detect sarcasm in news headlines.
 
