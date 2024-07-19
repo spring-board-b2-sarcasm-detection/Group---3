@@ -5,6 +5,7 @@ This project uses a CNN-LSTM model to detect sarcasm in news headlines.
 ## Dataset
 
 We use the Sarcasm Headlines Dataset containing labeled sarcastic and non-sarcastic headlines.
+Link for dataset- https://www.kaggle.com/datasets/rmisra/news-headlines-dataset-for-sarcasm-detection
 
 ## Preprocessing
 
